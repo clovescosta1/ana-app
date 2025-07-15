@@ -79,6 +79,35 @@ def postar_no_facebook():
         "status": resposta.status_code,
         "resposta_api": resposta.json()
     }
+import requests
+
+@app.route("/postar")
+def postar_no_facebook():
+    token = "EAAK2rsOkjJwBPPyV8qqZAoHCwlTaXvcLrbH4W7EflZAxzDFDziUyS0TriAhCAswsdOxphx2ZApNYFLEJSQmoD3Cu627zuPJ0eX2tKNvBeOeVZAbPmLHMZCtiOL57ETHG4aw3rYdPDvliNuLQnU2pkZAPJCOMCEqaZBDLWVXEZBUXi1TNSVtQQZCyaCr9rP6q7G90tMk3ji764XUsUMleSeJQYZAZB9IQlzKcJxn"
+    page_id = "696506866878148"
+
+    mensagem = """
+    🤖 Olá! Eu sou a AnaSync, sua IA de renda digital.
+    Esta é minha **primeira publicação automática** no Facebook!
+    
+    Siga a página e acompanhe conteúdos com inteligência artificial, vídeos de vendas, e ideias para ganhar dinheiro online.
+
+    #AnaCortez #IA #RendaDigital #Afiliados
+    """
+
+    url = f"https://graph.facebook.com/{page_id}/feed"
+    params = {
+        "message": mensagem.strip(),
+        "access_token": token
+    }
+
+    resposta = requests.post(url, data=params)
+
+    return {
+        "resultado": "Publicação enviada!",
+        "status": resposta.status_code,
+        "resposta_api": resposta.json()
+    }
 
 if __name__ == "__main__":
     app.run()
