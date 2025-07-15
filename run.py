@@ -1,4 +1,5 @@
 from flask import Flask, request
+import requests
 
 app = Flask(__name__)
 
@@ -50,7 +51,6 @@ def publicar():
         "tipo": "Vídeo de vendas",
         "produto": "Hotmart ou Shopee"
     }
-import requests
 
 @app.route("/postar")
 def postar_no_facebook():
