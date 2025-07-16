@@ -10,7 +10,7 @@ def home():
 @app.route("/ana")
 def ana():
     return {
-        "nome": "Ana Cortez",
+        "nome": "Ana Cortesas",
         "versão": "1.0",
         "função": "Gerar vídeos, postar em redes e vender como afiliada"
     }
@@ -30,7 +30,7 @@ def comando():
         return {"erro": "Acesso negado"}, 401
     return {
         "resposta": "Comando recebido com sucesso!",
-        "status": "Ana executando",
+        "status": "Ana Cortesas executando",
         "ação": "Monitorar redes e gerar conteúdo"
     }
 
@@ -47,7 +47,7 @@ def gerar_video():
 def publicar():
     return {
         "resultado": "Postagem simulada com sucesso!",
-        "canal": "Instagram @ana.cortez.oficial",
+        "canal": "Instagram @ana.cortes.oficial",
         "tipo": "Vídeo de vendas",
         "produto": "Hotmart ou Shopee"
     }
@@ -55,16 +55,16 @@ def publicar():
 @app.route("/postar")
 def postar_no_facebook():
     token = "EAAK2rsOkjJwBPHLhdeaaQYdGIchZAdBWdN158EFP03VdxNrhSWvkcvZAvv7ZBggW0IokmoquO2mD4aQHLqvyfU4r7BaDcU751104g4w8kfanP6ZAaPy3KE4pzYnz2Bz78qZCG0ZAK7e1GtPLSmBAcx2iPUhQFa0ecZAKCJUyXZB8hJJdXnIvbxJJyTTTfinmaEXI"
-    page_id = "696506866878148"  # ID da página Ana Cortezas
+    page_id = "696506866878148"  # ID da página Ana Cortesas
 
     mensagem = """
-    🤖 Olá! Eu sou a AnaSync, sua IA de renda digital.
-    Esta é minha **publicação automática** no Facebook!
+🤖 Olá! Eu sou a AnaSync, sua IA de renda digital.
+Esta é minha publicação automática no Facebook!
 
-    Siga a página Ana Cortezas para ver vídeos de vendas e ideias com IA para ganhar dinheiro.
+Siga a página Ana Cortesas para ver vídeos de vendas e ideias com IA para ganhar dinheiro.
 
-    #AnaCortez #RendaDigital #IA #Afiliados
-    """
+#AnaCortesas #RendaDigital #IA #Afiliados
+"""
 
     url = f"https://graph.facebook.com/{page_id}/feed"
     params = {
@@ -75,7 +75,7 @@ def postar_no_facebook():
     resposta = requests.post(url, data=params)
 
     return {
-        "resultado": "Publicação enviada!",
+        "resultado": "Publicação enviada por Ana Cortesas!",
         "status": resposta.status_code,
         "resposta_api": resposta.json()
     }
