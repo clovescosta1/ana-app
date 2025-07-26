@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Painel AnaSync</title>
+</head>
+<body>
+    <h1>Painel da AnaSync</h1>
+    <p>Status: Online</p>
+    <a href="/publicar?senha=sua_senha_aqui">
+        <button>Publicar Post</button>
+    </a>
+</body>
+</html>
