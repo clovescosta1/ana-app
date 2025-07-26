@@ -25,7 +25,7 @@ def create_app():
         resposta = requests.post(
             "https://SEUSITE.com/wp-json/wp/v2/posts",
             json=dados,
-            auth=("ana-renda-digital", "AnaCortez@2024!")
+            auth=("ana-renda-digital", "AnaCortesas!")
         )
         return f"Status: {resposta.status_code}"
 
