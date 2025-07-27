@@ -1,3 +1,4 @@
+{% block content %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -11,3 +12,18 @@
     </a>
 </body>
 </html>
+  <div class="jumbotron text-center">
+        <h1>Bem-vindo ao Viral Video App!</h1>
+        <p class="lead">Sua plataforma para compartilhar e descobrir vídeos virais.</p>
+        {% if current_user.is_authenticated %}
+            <p>Pronto para começar?</p>
+            <a href="{{ url_for('video.my_videos_page') }}" class="btn btn-success btn-lg">Ver Vídeos</a>
+            <a href="{{ url_for('video.upload_video_page') }}" class="btn btn-info btn-lg">Enviar Vídeo</a>
+            <a href="{{ url_for('video.generate_video_page') }}" class="btn btn-primary btn-lg">Gerar Vídeo Automático</a> {# <-- ADICIONE ESTA LINHA #}
+        {% else %}
+            <p>Faça login ou cadastre-se para começar.</p>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">Login</a>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-secondary btn-lg">Cadastro</a>
+        {% endif %}
+    </div>
+{% endblock %
