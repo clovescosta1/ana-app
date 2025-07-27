@@ -1,2 +1,3 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+.[flake8]
+exclude = .git, __pycache__, env, venv, .venv, build, dist, migrations
+max-line-length = 120

@@ -1,64 +1,97 @@
-import os
-from pathlib import Path
+﻿Write-Host "Script de correção automática"
+# Seu conteúdo do script aqui
+<#
+.SYNOPSIS
+    Script de correção automática para projetos Flask
+.DESCRIPTION
+    Este script automatiza a configuração do ambiente virtual,
+    instalação de dependências e correção de problemas comuns
+    em aplicações Flask.
+#>
 
-# Defina a estrutura do seu aplicativo Flask aqui
-# 'None' indica um arquivo, e um dicionário indica um diretório
-PROJECT_ROOT = "my_flask_app"
-FLASK_STRUCTURE = {
-    "app": {
-        "static": {
-            "css": {
-                "style.css": None
-            },
-            "js": None,
-            "images": None
-        },
-        "templates": {
-            "base.html": None,
-            "index.html": None
-        },
-        "blueprints": {
-            "__init__.py": None,
-            "home.py": None
-        },
-        "__init__.py": None,
-        "models.py": None
-    },
-    "config.py": None,
-    "run.py": None,
-    ".env": None,
-    "requirements.txt": None
+# Configurações
+$VENV_DIR = "venv"
+$REQUIREMENTS = @("flask", "flask-sqlalchemy", "flask-login", "flask-wtf", "python-dotenv", "flake8")
+
+function Initialize-Environment {
+    Write-Host "`n=== VERIFICANDO AMBIENTE ===`n" -ForegroundColor Cyan
+    
+    # Verifica se o Python está instalado
+    try {
+        $pythonVersion = python --version
+        Write-Host "Python encontrado: $pythonVersion" -ForegroundColor Green
+    } catch {
+        Write-Host "Python não encontrado. Instale Python primeiro." -ForegroundColor Red
+        exit 1
+    }
+
+    # Cria/reativa o ambiente virtual
+    if (-not (Test-Path $VENV_DIR)) {
+        Write-Host "Criando ambiente virtual..." -ForegroundColor Yellow
+        python -m venv $VENV_DIR
+    }
+
+    Write-Host "Ativando ambiente virtual..." -ForegroundColor Yellow
+    .\venv\Scripts\Activate
+
+    # Atualiza pip
+    Write-Host "Atualizando pip..." -ForegroundColor Yellow
+    python -m pip install --upgrade pip
 }
 
-def create_structure(base_path, structure):
-    """
-    Função recursiva para criar a estrutura de diretórios e arquivos.
-    """
-    for name, content in structure.items():
-        current_path = Path(base_path) / name
-        if content is None:  # É um arquivo
-            try:
-                current_path.touch()
-                # AINDA SEM LOG BONITO:
-                print(f"[CRIADO] Arquivo: {current_path}")
-            except Exception as e:
-                print(f"[ERRO] Ao criar arquivo {current_path}: {e}")
-        else:  # É um diretório
-            try:
-                current_path.mkdir(exist_ok=True)
-                # AINDA SEM LOG BONITO:
-                print(f"[CRIADO] Diretório: {current_path}")
-                create_structure(current_path, content) # Recursão para subdiretórios
-            except Exception as e:
-                print(f"[ERRO] Ao criar diretório {current_path}: {e}")
+function Install-Dependencies {
+    Write-Host "`n=== INSTALANDO DEPENDÊNCIAS ===`n" -ForegroundColor Cyan
+    
+    foreach ($package in $REQUIREMENTS) {
+        Write-Host "Instalando $package..." -ForegroundColor Yellow
+        pip install $package
+    }
+}
 
-# --- Ponto de entrada do script ---
-if __name__ == "__main__":
-    print(f"Iniciando a criação da estrutura do projeto '{PROJECT_ROOT}'...")
+function Fix-File-Formatting {
+    Write-Host "`n=== CORRIGINDO FORMATAÇÃO ===`n" -ForegroundColor Cyan
     
-    # Cria o diretório raiz do projeto se não existir
-    Path(PROJECT_ROOT).mkdir(exist_ok=True)
+    Get-ChildItem -Recurse -Filter *.py | ForEach-Object {
+        try {
+            $content = Get-Content $_.FullName -Raw -ErrorAction Stop
+            if ($null -ne $content) {
+                $corrected = $content.TrimEnd() + "`n"
+                Set-Content $_.FullName $corrected -NoNewline
+                Write-Host "Arquivo $($_.Name) formatado" -ForegroundColor Green
+            }
+        } catch {
+            Write-Host "Erro ao processar $($_.Name): $_" -ForegroundColor Red
+        }
+    }
+}
+
+function Run-Flask-App {
+    Write-Host "`n=== INICIANDO APLICAÇÃO ===`n" -ForegroundColor Cyan
     
-    create_structure(PROJECT_ROOT, FLASK_STRUCTURE)
-    
-    print("\nEstrutura criada com sucesso!")
+    # Verifica se run.py existe
+    if (-not (Test-Path "run.py")) {
+        Write-Host "Criando run.py básico..." -ForegroundColor Yellow
+        @'
+from app import create_app
+
+app = create_app()
+
+if __name__ == '__main__':
+    app.run(debug=True)
+'@ | Set-Content run.py -Encoding UTF8
+    }
+
+    # Executa a aplicação
+    try {
+        Write-Host "Iniciando Flask..." -ForegroundColor Green
+        python run.py
+    } catch {
+        Write-Host "Erro ao iniciar a aplicação: $_" -ForegroundColor Red
+    }
+}
+
+# Execução principal
+Initialize-Environment
+Install-Dependencies
+Fix-File-Formatting
+Run-Flask-App

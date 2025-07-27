@@ -1,35 +1,26 @@
-import os
-<<<<<<< HEAD
+Write-Host "`n=== Limpando projeto Flask: __pycache__ e arquivos .pyc ===`n" -ForegroundColor Cyan
 
-SECRET_KEY = os.environ.get('SECRET_KEY') or 'secret_key_here'
-=======
-from flask import Flask, render_template_string
+$projectRoot = "C:\Users\clove\Documents\viral_video_app"
 
-# Define a classe de configuração
-class Config:
-    """
-    Classe de configuração para o aplicativo Flask.
-    Ela recupera informações sensíveis como SECRET_KEY e DATABASE_URL
-    de variáveis de ambiente para melhor segurança e flexibilidade.
-    Se as variáveis de ambiente não estiverem definidas, ela usa valores padrão.
-    """
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'uma-chave-secreta-muito-importante-para-mudar'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-   {% extends "base.html" %}
+Write-Host "Removendo pastas __pycache__..." -ForegroundColor Yellow
+Get-ChildItem -Path $projectRoot -Recurse -Directory -Filter "__pycache__" | ForEach-Object {
+    Remove-Item $_.FullName -Recurse -Force
+    Write-Host "Deletado: $($_.FullName)" -ForegroundColor Green
+}
 
-{% block content %}
-<h2>Login</h2>
-<form method="POST" action="{{ url_for('auth.login') }}">
-    {{ form.hidden_tag() }}
-    <div>
-        <label>Email:</label>
-        <input type="email" name="email" required>
-    </div>
-    <div>
-        <label>Senha:</label>
-        <input type="password" name="password" required>
-    </div>
-    <button type="submit">Entrar</button>
-</form>
-{% endblock %}
->>>>>>> 9b5a5907ae3115f2057f08419bf74521c0cf48a4
+Write-Host "`nRemovendo arquivos .pyc..." -ForegroundColor Yellow
+Get-ChildItem -Path $projectRoot -Recurse -Filter "*.pyc" | ForEach-Object {
+    Remove-Item $_.FullName -Force
+    Write-Host "Deletado: $($_.FullName)" -ForegroundColor Green
+}
+
+$duplicateRun = Join-Path $projectRoot "app\run.py"
+if (Test-Path $duplicateRun) {
+    Write-Host "`nRemovendo run.py duplicado dentro de /app..." -ForegroundColor Yellow
+    Remove-Item $duplicateRun -Force
+    Write-Host "Deletado: $duplicateRun" -ForegroundColor Green
+} else {
+    Write-Host "`nNenhum run.py duplicado encontrado dentro de /app." -ForegroundColor Gray
+}
+
+Write-Host "`n=== Limpeza concluída! ===" -ForegroundColor Cyan
