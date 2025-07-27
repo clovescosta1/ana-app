@@ -1,4 +1,11 @@
-flask
-gunicorn
-requests
-python-dotenv
+import os
+from flask import send_from_directory, current_app
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(
+        os.path.join(current_app.root_path, 'static'),
+        'favicon.ico',
+        mimetype='image/vnd.microsoft.icon'
+    )
+    return "<h1>Aplicativo de V�deos Virais rodando!</h1>"

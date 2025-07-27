@@ -1,0 +1,68 @@
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from flask_login import LoginManager
+from flask_bootstrap5 import Bootstrap
+from flask_bcrypt import Bcrypt
+from celery import Celery
+from config import Config
+
+db = SQLAlchemy()
+migrate = Migrate()
+login_manager = LoginManager()
+bcrypt = Bcrypt()
+login_manager.login_view = 'auth.login'
+login_manager.login_message_category = 'info'
+
+celery_app = None  # será criado dentro de create_app
+
+def make_celery(app):
+    celery = Celery(
+        app.import_name,
+        broker=app.config.get('CELERY_BROKER_URL', 'redis://localhost:6379/0'),
+        backend=app.config.get('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+    )
+    celery.conf.update(app.config)
+
+    class ContextTask(celery.Task):
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return self.run(*args, **kwargs)
+    celery.Task = ContextTask
+
+    return celery
+
+@login_manager.user_loader
+def load_user(user_id):
+    from app.models.user import User
+    return User.query.get(int(user_id))
+
+def create_app():
+    global celery_app
+
+    app = Flask(__name__)
+    app.config.from_object(Config)
+
+    # Inicializa extensões
+    db.init_app(app)
+    migrate.init_app(app, db)
+    login_manager.init_app(app)
+    Bootstrap(app)
+    bcrypt.init_app(app)
+
+    # Inicializa celery com contexto
+    celery_app = make_celery(app)
+
+    # Registra blueprints (com nomes como no seu exemplo)
+    from app.auth import bp as auth_bp
+    app.register_blueprint(auth_bp, url_prefix='/auth')
+
+    from app.main import bp as main_bp
+    app.register_blueprint(main_bp)
+
+    from app.video import bp as video_bp
+    app.register_blueprint(video_bp, url_prefix='/video')
+
+    # Se tiver outros blueprints, registre aqui...
+
+    return app

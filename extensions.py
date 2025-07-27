@@ -1,0 +1,1 @@
+# Extensões futuras do Flask podem ser adicionadas aqui.
