@@ -14,7 +14,7 @@ def favicon():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    afrom flask import Flask, request
+   from flask import Flask, request
 import requests
 
 app = Flask(__name__)
