@@ -4,6 +4,16 @@ from flask import Flask, render_template, request, redirect, url_for
 
 app = Flask(__name__)
 from flask import Blueprint, request, jsonify
+from flask import Flask, render_template
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "<h1>AnaSync está rodando!</h1><p>O painel estará disponível aqui em breve.</p>"
+
+if __name__ == "__main__":
+    app.run()
 
 bp = Blueprint("main", __name__)
 
