@@ -1,0 +1,159 @@
+# app.py
+import os, math, random
+from datetime import datetime, timedelta
+from flask import Flask, request, jsonify, abort
+from apscheduler.schedulers.background import BackgroundScheduler
+import psycopg2, psycopg2.extras
+import requests
+
+app = Flask(__name__)
+API_KEY = os.getenv("API_KEY", "changeme")
+WP_BASE = os.getenv("WP_BASE")                 # ex: https://seusite.com
+WP_USER = os.getenv("WP_USER")                 # usuário aplicativo
+WP_APP_PASSWORD = os.getenv("WP_APP_PASSWORD") # senha de app
+
+def db():
+    return psycopg2.connect(os.environ["DATABASE_URL"], sslmode="require")
+
+# -------- util --------
+def require_key():
+    k = request.headers.get("authorization","").replace("Bearer ","")
+    if k != API_KEY: abort(401)
+
+def setting_get(key, default=None):
+    with db() as conn, conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute("select value from settings where key=%s", (key,))
+        r = cur.fetchone()
+        return r["value"] if r else default
+
+def setting_set(key, value):
+    with db() as conn, conn.cursor() as cur:
+        cur.execute("""insert into settings(key,value) values (%s,%s::jsonb)
+                       on conflict(key) do update set value=excluded.value""",
+                    (key, psycopg2.extras.Json(value)))
+
+# -------- aprendizado (bandit UCB1) --------
+def pick_topic_ucb():
+    with db() as conn, conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute("select id,slug,name,weight from topics order by id")
+        topics = cur.fetchall()
+        if not topics: return None
+        # n = impressões (aprox. número de posts), r = recompensa média
+        scores = []
+        total = 1
+        for t in topics:
+            cur.execute("select count(*), coalesce(avg((metrics->>'reward')::float),0) from posts where topic_id=%s", (t["id"],))
+            n, r = cur.fetchone()
+            n = int(n)
+            total += n
+            if n == 0:
+                score = 10.0  # força exploração
+            else:
+                score = r + math.sqrt(2*math.log(total)/n)
+            scores.append((score * float(t["weight"]), t))
+        scores.sort(key=lambda x: x[0], reverse=True)
+        return scores[0][1]
+
+def update_reward(post_id, reward):
+    with db() as conn, conn.cursor() as cur:
+        # salva métrica agregada simples
+        cur.execute("""update posts
+                       set metrics = coalesce(metrics, '{}'::jsonb) || jsonb_build_object('reward', %s)
+                       where id=%s""", (reward, post_id))
+
+# -------- geração/publicação --------
+def generate_post(topic):
+    # Aqui você pode integrar LLM para gerar conteúdo completo
+    title = f"{topic['name']}: {random.choice(['guia','novidades','passo a passo'])} {datetime.utcnow().strftime('%d/%m')}"
+    content = f"<p>Este artigo foi gerado automaticamente pela AnaSync sobre <strong>{topic['name']}</strong>.</p>"
+    return title, content
+
+def publish_to_wp(title, content, topic_slug):
+    # WordPress REST: posts
+    url = f"{WP_BASE}/wp-json/wp/v2/posts"
+    r = requests.post(url, auth=(WP_USER, WP_APP_PASSWORD),
+                      json={"title": title, "content": content, "status":"publish",
+                            "categories":[],"tags":[]})
+    r.raise_for_status()
+    return r.json()["id"]
+
+def cycle_once():
+    state = setting_get("autonomy", {"enabled": False, "interval_min": 30})
+    if not state.get("enabled"): return "autonomy-off"
+    topic = pick_topic_ucb()
+    if not topic: return "no-topic"
+    title, content = generate_post(topic)
+    wp_id = publish_to_wp(title, content, topic["slug"])
+    # registra
+    with db() as conn, conn.cursor() as cur:
+        cur.execute("""insert into posts(topic_id,ext_id,title,status,published_at,metrics)
+                       values (%s,%s,%s,'published',now(),'{}'::jsonb) returning id""",
+                    (topic["id"], str(wp_id), title))
+        pid = cur.fetchone()[0]
+    # recompensa inicial neutra
+    update_reward(pid, 0.5)
+    return f"posted:{pid}"
+
+# -------- agendador --------
+sched = BackgroundScheduler(daemon=True)
+def reschedule():
+    sched.remove_all_jobs()
+    state = setting_get("autonomy", {"enabled": False, "interval_min": 30})
+    interval = int(state.get("interval_min", 30))
+    sched.add_job(cycle_once, "interval", minutes=interval, id="ana_auto")
+reschedule()
+sched.start()
+
+# -------- rotas --------
+@app.route("/")
+def root(): return "AnaSync rodando!"
+
+@app.route("/status")
+def status():
+    return jsonify({
+        "status":"online",
+        "autonomy": setting_get("autonomy", {}),
+        "time": datetime.utcnow().isoformat()
+    })
+
+@app.route("/autonomy/start", methods=["POST"])
+def autonomy_start():
+    require_key()
+    body = request.get_json(silent=True) or {}
+    interval = int(body.get("interval_min", 30))
+    setting_set("autonomy", {"enabled": True, "interval_min": interval})
+    reschedule()
+    return jsonify({"ok":True,"msg":"autonomia ligada","interval_min":interval})
+
+@app.route("/autonomy/stop", methods=["POST"])
+def autonomy_stop():
+    require_key()
+    setting_set("autonomy", {"enabled": False, "interval_min": setting_get("autonomy", {}).get("interval_min",30)})
+    reschedule()
+    return jsonify({"ok":True,"msg":"autonomia desligada"})
+
+@app.route("/cycle/now", methods=["POST"])
+def cycle_now():
+    require_key()
+    result = cycle_once()
+    return jsonify({"ok":True,"result":result})
+
+@app.route("/events", methods=["POST"])
+def events():
+    """Webhook do WP para enviar métricas (views, cliques, conv)."""
+    # {post_ext_id, kind, value}
+    data = request.get_json() or {}
+    ext = str(data.get("post_ext_id",""))
+    kind = data.get("kind","view")
+    value = float(data.get("value",1))
+    with db() as conn, conn.cursor() as cur:
+        cur.execute("select id from posts where ext_id=%s", (ext,))
+        row = cur.fetchone()
+        if not row: return jsonify({"ok":False,"msg":"post desconhecido"}), 404
+        pid = row[0]
+        cur.execute("insert into events(post_id, kind, value) values (%s,%s,%s)", (pid,kind,value))
+        # simples: reward média dos últimos eventos
+        cur.execute("select avg(value) from events where post_id=%s", (pid,))
+        avg = cur.fetchone()[0] or 0.0
+    update_reward(pid, avg)
+    return jsonify({"ok":True,"reward":avg})
