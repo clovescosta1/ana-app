@@ -21,7 +21,7 @@ def automate_post():
 
     # 2. Configura a requisição para o WordPress
     # URL do seu site WordPress. Agora está correto!
-    wordpress_url = "https://jcdicaseconhecimentos.com.br"
+    wordpress_url = "https://www.jcdicaseconhecimentos.com.br"
     # Endereço do endpoint da API REST do seu plugin
     endpoint = f"{wordpress_url}/wp-json/anasync-completo/v1/command"
     # Sua chave de API secreta. Mantenha isso seguro!
