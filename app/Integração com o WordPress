@@ -1,5 +1,5 @@
 // exemplo simples com fetch no footer do post
-fetch('https://ana-app-9ts1.onrender.com/events', {
+fetch('https://jcdicaseconhecimentos.com.br', {
   method: 'POST',
   headers: {'Content-Type':'application/json'},
   body: JSON.stringify({post_ext_id: WP_POST_ID, kind: 'view', value: 1})
