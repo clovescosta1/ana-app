@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Cadastro — AnaSync{% endblock %}
+{% block content %}
+<div style="max-width:420px; margin:40px auto;" class="card">
+    <h2 style="color:#d4af37; text-align:center; margin-bottom:30px;">Criar conta</h2>
+    <form method="POST" novalidate>
+        {{ form.hidden_tag() }}
+        <div style="margin-bottom:20px;">
+            <label style="display:block; margin-bottom:8px; color:#aaa;">{{ form.username.label }}</label>
+            {{ form.username(style="width:100%;padding:12px;background:#0f0f1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:15px;") }}
+            {% for error in form.username.errors %}<small style="color:#d9534f;">{{ error }}</small>{% endfor %}
+        </div>
+        <div style="margin-bottom:20px;">
+            <label style="display:block; margin-bottom:8px; color:#aaa;">{{ form.email.label }}</label>
+            {{ form.email(style="width:100%;padding:12px;background:#0f0f1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:15px;") }}
+            {% for error in form.email.errors %}<small style="color:#d9534f;">{{ error }}</small>{% endfor %}
+        </div>
+        <div style="margin-bottom:20px;">
+            <label style="display:block; margin-bottom:8px; color:#aaa;">{{ form.password.label }}</label>
+            {{ form.password(style="width:100%;padding:12px;background:#0f0f1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:15px;") }}
+            {% for error in form.password.errors %}<small style="color:#d9534f;">{{ error }}</small>{% endfor %}
+        </div>
+        <div style="margin-bottom:24px;">
+            <label style="display:block; margin-bottom:8px; color:#aaa;">{{ form.confirm_password.label }}</label>
+            {{ form.confirm_password(style="width:100%;padding:12px;background:#0f0f1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:15px;") }}
+            {% for error in form.confirm_password.errors %}<small style="color:#d9534f;">{{ error }}</small>{% endfor %}
+        </div>
+        {{ form.submit(class="btn btn-gold", style="width:100%;") }}
+    </form>
+    <p style="text-align:center; margin-top:20px; color:#aaa;">Já tem conta? <a href="{{ url_for('auth.login') }}" style="color:#d4af37;">Fazer login</a></p>
+</div>
+{% endblock %}
