@@ -1,25 +1,27 @@
 {% extends "base.html" %}
 {% block title %}Dashboard — AnaSync{% endblock %}
 {% block content %}
-<div style="padding:40px 0;">
+<div style="padding:30px 0;">
     <h1 style="color:#d4af37;">Olá, {{ current_user.username }}! 👋</h1>
     <p style="color:#aaa; margin-top:8px;">Bem-vindo ao painel AnaSync.</p>
 </div>
 <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:20px;">
-    <div class="card" style="text-align:center;">
-        <div style="font-size:40px;">🎬</div>
-        <h3 style="color:#d4af37; margin:12px 0;">Gerar Vídeo</h3>
-        <p style="color:#aaa; font-size:14px;">Crie vídeos automáticos com IA</p>
-    </div>
-    <div class="card" style="text-align:center;">
+    <a href="{{ url_for('video.gerar_video') }}" style="text-decoration:none;">
+        <div class="card" style="text-align:center; cursor:pointer; transition:border 0.2s;" onmouseover="this.style.borderColor='#d4af37'" onmouseout="this.style.borderColor='#2a2a4a'">
+            <div style="font-size:40px;">🎬</div>
+            <h3 style="color:#d4af37; margin:12px 0;">Gerar Vídeo</h3>
+            <p style="color:#aaa; font-size:14px;">Crie vídeos automáticos com IA para Instagram, TikTok e Facebook</p>
+        </div>
+    </a>
+    <div class="card" style="text-align:center; opacity:0.6;">
         <div style="font-size:40px;">📱</div>
         <h3 style="color:#d4af37; margin:12px 0;">Publicar</h3>
-        <p style="color:#aaa; font-size:14px;">Poste no Instagram e Facebook</p>
+        <p style="color:#aaa; font-size:14px;">Em breve — poste automaticamente nas redes sociais</p>
     </div>
-    <div class="card" style="text-align:center;">
+    <div class="card" style="text-align:center; opacity:0.6;">
         <div style="font-size:40px;">📊</div>
         <h3 style="color:#d4af37; margin:12px 0;">Relatórios</h3>
-        <p style="color:#aaa; font-size:14px;">Acompanhe o desempenho</p>
+        <p style="color:#aaa; font-size:14px;">Em breve — acompanhe o desempenho</p>
     </div>
 </div>
 {% endblock %}

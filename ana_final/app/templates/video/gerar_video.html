@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block title %}Gerar Vídeo Viral — AnaSync{% endblock %}
+{% block content %}
+<style>
+.plataforma-btn { cursor:pointer; padding:12px 20px; border-radius:12px; border:2px solid #333; background:#0f0f1a; color:#aaa; transition:all 0.2s; margin:5px; display:inline-block; font-size:15px; }
+.plataforma-btn.ativo { border-color:#d4af37; color:#d4af37; background:#1a1a2e; }
+.roteiro-box { background:#0f0f1a; border:1px solid #333; border-radius:12px; padding:20px; margin-top:15px; }
+.roteiro-secao { margin-bottom:24px; padding-bottom:24px; border-bottom:1px solid #1a1a2e; }
+.roteiro-secao:last-child { border-bottom:none; }
+.roteiro-secao h4 { color:#d4af37; margin-bottom:10px; font-size:13px; text-transform:uppercase; letter-spacing:1px; }
+.roteiro-secao p, .roteiro-secao div { color:#ddd; line-height:1.8; white-space: pre-wrap; }
+.spinner { display:none; text-align:center; padding:60px; }
+.spinner.ativo { display:block; }
+.youtube-extra { display:none; }
+.youtube-extra.visivel { display:block; }
+</style>
+
+<div style="padding:30px 0;">
+    <h1 style="color:#d4af37;">🎬 Gerar Vídeo Viral</h1>
+    <p style="color:#aaa; margin-top:8px;">IA otimizada para destravar o algoritmo do Instagram, TikTok, Facebook e YouTube</p>
+</div>
+
+<div class="card" style="margin-bottom:30px;">
+    <h3 style="color:#fff; margin-bottom:20px;">⚙️ Configurar vídeo</h3>
+
+    <!-- Plataforma -->
+    <div style="margin-bottom:25px;">
+        <label style="color:#aaa; display:block; margin-bottom:12px;">📱 Plataforma</label>
+        <div>
+            <span class="plataforma-btn ativo" onclick="selecionarPlataforma('instagram', this)">📸 Instagram</span>
+            <span class="plataforma-btn" onclick="selecionarPlataforma('tiktok', this)">🎵 TikTok</span>
+            <span class="plataforma-btn" onclick="selecionarPlataforma('facebook', this)">👥 Facebook</span>
+            <span class="plataforma-btn" onclick="selecionarPlataforma('youtube', this)">▶️ YouTube</span>
+        </div>
+        <input type="hidden" id="plataforma" value="instagram">
+    </div>
+
+    <!-- Dica por plataforma -->
+    <div id="dica-plataforma" style="margin-bottom:20px; padding:12px 16px; background:#0f0f1a; border-radius:8px; border-left:3px solid #d4af37;">
+        <p style="color:#aaa; font-size:13px;">📸 <strong style="color:#d4af37;">Instagram Reels:</strong> Gancho nos 3 primeiros segundos. Ideal 30-60 segundos. Foco em salvar e compartilhar.</p>
+    </div>
+
+    <!-- Tema -->
+    <div style="margin-bottom:25px;">
+        <label style="color:#aaa; display:block; margin-bottom:8px;">💡 Tema do vídeo</label>
+        <textarea id="tema" rows="3" placeholder="Ex: Como ganhar dinheiro com dividendos em 2025..."
+            style="width:100%;padding:12px;background:#0f0f1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:15px;resize:vertical;">{{ tema_sugerido }}</textarea>
+    </div>
+
+    <!-- Usar JCSSHOP -->
+    <div style="margin-bottom:25px;">
+        <label style="display:flex; align-items:center; gap:12px; cursor:pointer;">
+            <input type="checkbox" id="usar_jcsshop" checked style="width:18px;height:18px;">
+            <span style="color:#aaa;">🔗 Usar dados em tempo real do JCSSHOP</span>
+        </label>
+        {% if noticias %}
+        <div style="margin-top:12px; padding:12px; background:#0f0f1a; border-radius:8px; border-left:3px solid #d4af37;">
+            <p style="color:#888; font-size:12px; margin-bottom:6px;">📰 Notícias disponíveis hoje:</p>
+            {% for noticia in noticias %}
+            <p style="color:#ccc; font-size:13px; margin:4px 0; cursor:pointer;" onclick="document.getElementById('tema').value='{{ noticia }}'">• {{ noticia }} <span style="color:#d4af37; font-size:11px;">(usar)</span></p>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <button onclick="gerarRoteiro()" class="btn btn-gold" style="width:100%; font-size:16px; padding:16px;">
+        🚀 Gerar Roteiro com IA
+    </button>
+</div>
+
+<!-- Loading -->
+<div class="spinner" id="spinner">
+    <div style="font-size:48px; animation: pulse 1s infinite;">🤖</div>
+    <p style="color:#aaa; margin-top:16px; font-size:18px;">Gerando roteiro viral com IA...</p>
+    <p style="color:#666; font-size:13px;">Analisando algoritmos e tendências...</p>
+</div>
+
+<!-- Resultado -->
+<div id="resultado" style="display:none;">
+    <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
+            <h3 style="color:#d4af37;">✅ Roteiro Gerado!</h3>
+            <span id="badge-plataforma" style="background:#d4af37; color:#000; padding:6px 16px; border-radius:20px; font-weight:bold; font-size:13px;"></span>
+        </div>
+
+        <!-- YouTube Extra -->
+        <div id="youtube-titulo" class="roteiro-secao youtube-extra">
+            <h4>🔍 Título SEO Otimizado</h4>
+            <p id="r-titulo" style="font-size:18px; font-weight:bold; color:#fff;"></p>
+        </div>
+
+        <div class="roteiro-secao">
+            <h4>🎯 Gancho (primeiros segundos)</h4>
+            <p id="r-gancho"></p>
+        </div>
+
+        <div class="roteiro-secao">
+            <h4>📝 Desenvolvimento</h4>
+            <p id="r-desenvolvimento"></p>
+        </div>
+
+        <div class="roteiro-secao">
+            <h4>📣 Call to Action</h4>
+            <p id="r-cta"></p>
+        </div>
+
+        <div class="roteiro-secao">
+            <h4>🎬 Cenas Sugeridas</h4>
+            <p id="r-cenas"></p>
+        </div>
+
+        <!-- YouTube Thumbnail -->
+        <div id="youtube-thumbnail" class="roteiro-secao youtube-extra">
+            <h4>🖼️ Thumbnail Sugerida</h4>
+            <p id="r-thumbnail"></p>
+        </div>
+
+        <div class="roteiro-secao">
+            <h4>📲 Legenda / Descrição com Hashtags</h4>
+            <div id="r-legenda" style="background:#0f0f1a; padding:15px; border-radius:8px;"></div>
+        </div>
+
+        <!-- YouTube Tags -->
+        <div id="youtube-tags" class="roteiro-secao youtube-extra">
+            <h4>🏷️ Tags para YouTube</h4>
+            <div id="r-tags"></div>
+        </div>
+
+        <div style="display:flex; gap:12px; margin-top:20px; flex-wrap:wrap;">
+            <button onclick="copiarRoteiro()" class="btn btn-gold">📋 Copiar Roteiro</button>
+            <button onclick="novoRoteiro()" style="background:#333; color:#fff; padding:12px 24px; border-radius:30px; border:none; cursor:pointer; font-weight:bold;">🔄 Gerar Novo</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const dicas = {
+    instagram: '📸 <strong style="color:#d4af37;">Instagram Reels:</strong> Gancho nos 3 primeiros segundos. Ideal 30-60 segundos. Foco em salvar e compartilhar.',
+    tiktok: '🎵 <strong style="color:#d4af37;">TikTok:</strong> Gancho em 1-2 segundos. Trending sounds. Texto sincronizado. 15-45 segundos.',
+    facebook: '👥 <strong style="color:#d4af37;">Facebook:</strong> Valor imediato. Gere comentários. Ideal para grupos de investimento. 1-3 minutos.',
+    youtube: '▶️ <strong style="color:#d4af37;">YouTube:</strong> Título SEO + Gancho em 30s + Estrutura de tópicos. 8-15 minutos para máxima receita.'
+};
+
+const badges = {
+    instagram: '📸 Instagram Reels',
+    tiktok: '🎵 TikTok',
+    facebook: '👥 Facebook',
+    youtube: '▶️ YouTube'
+};
+
+function selecionarPlataforma(plat, el) {
+    document.querySelectorAll('.plataforma-btn').forEach(b => b.classList.remove('ativo'));
+    el.classList.add('ativo');
+    document.getElementById('plataforma').value = plat;
+    document.getElementById('dica-plataforma').innerHTML = '<p style="color:#aaa; font-size:13px;">' + dicas[plat] + '</p>';
+}
+
+async function gerarRoteiro() {
+    const tema = document.getElementById('tema').value;
+    const plataforma = document.getElementById('plataforma').value;
+    const usar_jcsshop = document.getElementById('usar_jcsshop').checked;
+
+    if (!tema.trim()) { alert('Por favor, digite um tema!'); return; }
+
+    document.getElementById('spinner').classList.add('ativo');
+    document.getElementById('resultado').style.display = 'none';
+
+    const formData = new FormData();
+    formData.append('tema', tema);
+    formData.append('plataforma', plataforma);
+    formData.append('usar_jcsshop', usar_jcsshop ? 'true' : 'false');
+
+    try {
+        const response = await fetch('/gerar-roteiro', { method: 'POST', body: formData });
+        const data = await response.json();
+
+        if (data.erro) { alert('Erro: ' + data.erro); return; }
+
+        document.getElementById('badge-plataforma').textContent = badges[plataforma];
+        document.getElementById('r-gancho').textContent = data.gancho || '';
+        document.getElementById('r-desenvolvimento').textContent = data.desenvolvimento || '';
+        document.getElementById('r-cta').textContent = data.cta || '';
+        document.getElementById('r-cenas').textContent = data.cenas || '';
+        document.getElementById('r-legenda').textContent = data.legenda || '';
+
+        // YouTube extras
+        const isYT = plataforma === 'youtube';
+        document.querySelectorAll('.youtube-extra').forEach(el => {
+            el.classList.toggle('visivel', isYT);
+        });
+
+        if (isYT) {
+            document.getElementById('r-titulo').textContent = data.titulo || '';
+            document.getElementById('r-thumbnail').textContent = data.thumbnail || '';
+            if (data.tags) {
+                const tagsArr = Array.isArray(data.tags) ? data.tags : data.tags.split(',');
+                document.getElementById('r-tags').innerHTML = tagsArr.map(t =>
+                    `<span style="background:#1a1a2e;border:1px solid #d4af37;color:#d4af37;padding:4px 10px;border-radius:20px;font-size:12px;margin:3px;display:inline-block;">${t.trim()}</span>`
+                ).join('');
+            }
+        }
+
+        document.getElementById('resultado').style.display = 'block';
+        document.getElementById('resultado').scrollIntoView({behavior:'smooth'});
+    } catch(e) {
+        alert('Erro ao gerar roteiro. Tente novamente.');
+    } finally {
+        document.getElementById('spinner').classList.remove('ativo');
+    }
+}
+
+function copiarRoteiro() {
+    const plat = document.getElementById('plataforma').value;
+    let texto = `PLATAFORMA: ${badges[plat]}\n\n`;
+    if (plat === 'youtube') texto += `TÍTULO: ${document.getElementById('r-titulo').textContent}\n\n`;
+    texto += `GANCHO:\n${document.getElementById('r-gancho').textContent}\n\n`;
+    texto += `DESENVOLVIMENTO:\n${document.getElementById('r-desenvolvimento').textContent}\n\n`;
+    texto += `CTA:\n${document.getElementById('r-cta').textContent}\n\n`;
+    texto += `CENAS:\n${document.getElementById('r-cenas').textContent}\n\n`;
+    if (plat === 'youtube') texto += `THUMBNAIL:\n${document.getElementById('r-thumbnail').textContent}\n\n`;
+    texto += `LEGENDA/DESCRIÇÃO:\n${document.getElementById('r-legenda').textContent}`;
+    navigator.clipboard.writeText(texto);
+    alert('✅ Roteiro copiado!');
+}
+
+function novoRoteiro() {
+    document.getElementById('resultado').style.display = 'none';
+    window.scrollTo(0, 0);
+}
+</script>
+{% endblock %}
