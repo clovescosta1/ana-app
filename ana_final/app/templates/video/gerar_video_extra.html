@@ -1,0 +1,19 @@
+<!-- Adicionar após o bloco de resultado existente -->
+<div id="gerar-video-box" style="display:none; margin-top:20px;">
+    <div class="card" style="text-align:center; padding:30px;">
+        <h3 style="color:#d4af37; margin-bottom:16px;">🎬 Gerar Arquivo de Vídeo</h3>
+        <p style="color:#aaa; margin-bottom:20px;">Transforme o roteiro em um vídeo .mp4 pronto para publicar!</p>
+        <button onclick="gerarArquivoVideo()" id="btn-gerar-video" class="btn btn-gold" style="font-size:16px; padding:16px 32px;">
+            🎬 Gerar Vídeo MP4
+        </button>
+        <div id="video-loading" style="display:none; margin-top:20px;">
+            <p style="color:#aaa;">⏳ Gerando vídeo... pode levar 30-60 segundos...</p>
+        </div>
+        <div id="video-resultado" style="display:none; margin-top:20px;">
+            <p style="color:#00ff88; margin-bottom:16px;">✅ Vídeo gerado com sucesso!</p>
+            <video id="video-player" controls style="width:100%; max-width:400px; border-radius:12px;"></video>
+            <br><br>
+            <a id="video-download" href="#" download class="btn btn-gold">⬇️ Baixar Vídeo</a>
+        </div>
+    </div>
+</div>
